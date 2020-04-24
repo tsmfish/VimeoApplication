@@ -2,6 +2,7 @@ package com.ru.vimeoapplication
 
 import android.content.Context
 import android.graphics.Color
+import android.media.MediaPlayer
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -31,8 +32,10 @@ class MainActivity : AppCompatActivity() {
             setBackgroundColor(Color.TRANSPARENT)
             setOnPreparedListener {
                 Log.d(LOG_TAG, "videoView::OnPreparedListener()")
+                seekBar?.max = it.duration
                 requestFocus()
                 start()
+                player = it
             }
             setOnCompletionListener {mediaPlayer ->
                 Log.d(LOG_TAG, "videoView::OnCompletion()")
@@ -40,6 +43,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    private var player: MediaPlayer? = null
+    private val seekBar by lazy { findViewById<SeekBar>(R.id.seekbar) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,7 +90,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        seekBar?.setOnSeekBarChangeListener(
+            object: SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {}
 
+                override fun onStartTrackingTouch(p0: SeekBar?) {
+                    player?.pause()
+                }
+
+                override fun onStopTrackingTouch(p0: SeekBar?) {
+                    player?.let {
+                        it.seekTo(seekBar?.progress!!)
+                        player?.start()
+                    }
+                }
+
+            }
+        )
     }
 
     fun playVideo(url: String) {
